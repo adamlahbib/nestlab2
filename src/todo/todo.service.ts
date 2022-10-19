@@ -5,8 +5,9 @@ import { TodoAddDTO } from './todoadd.dto';
 import { TodoUpdateDTO } from './todoupdate.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Todo } from 'src/models/item.entity';
+import { TodoQueryDTO } from './todoquery.dto';
 
 @Injectable()
 export class TodoService { 
@@ -21,8 +22,19 @@ export class TodoService {
         return item;
     }
 
-    async fetch(){
-        return this.repo.find();
+    async fetch(query?:TodoQueryDTO){
+        let condition={};
+
+        if(query.text && query.status){
+            condition = [{title: Like(`%${query.text}%`), status: query.status}, {description: Like(`%${query.text}%`), status: query.status}];
+        }
+        else if(query.text){
+            condition = [{title: Like(`%${query.text}%`)}, {description: Like(`%${query.text}%`)}];
+        }
+        else if(query.status){
+            condition = {status: query.status};
+        }
+        return await this.repo.find({where: condition});
     }
 
     async get(id: any){
@@ -63,5 +75,10 @@ export class TodoService {
         else {
             return item;
         }
+    }
+
+    async countByStatus(){
+        const count = await this.repo.query('SELECT status, COUNT(*) FROM todo GROUP BY status');
+        return(count);
     }
 }

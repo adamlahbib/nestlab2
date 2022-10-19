@@ -16,6 +16,13 @@ git log
 
 git checkout <sha>
 
+
+### To make a Postgres container for our DB. (Runs once).
+
+npm run start:dev:db
+
+### To run the Nest app locally (Dev Server).
+
 npm run start:dev
 
 <hr/>

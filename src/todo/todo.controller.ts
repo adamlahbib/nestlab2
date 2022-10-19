@@ -1,33 +1,37 @@
-import { Body, Param, Controller, Get, Post, Delete, Put } from '@nestjs/common';
+import { Query, Body, Param, Controller, Get, Post, Delete, Put } from '@nestjs/common';
 import { Model } from './model';
 import { TodoAddDTO } from './todoadd.dto';
 import { TodoUpdateDTO } from './todoupdate.dto';
 import { TodoService } from './todo.service';
+import { TodoQueryDTO } from './todoquery.dto';
 
 @Controller('todo')
 export class TodoController {
     constructor(private readonly todoService: TodoService){}
 
-    todoList: Model[] = [];
-
     @Get()
-    getTodoList(): any {
-        return this.todoService.fetch();
+    getTodoList(@Query() query: TodoQueryDTO): any {
+        return this.todoService.fetch(query);
     }
 
     @Post()
     createTodo(@Body() body: TodoAddDTO): any {
         return this.todoService.create(body);
-    } 
+    }
 
-    @Get(':id')
-    getTodo(@Param('id') id: string): any{
-        return this.todoService.get(id);
+    @Get('count')
+    countByStatus(): any{
+        return this.todoService.countByStatus();
     } 
 
     @Get('restore/:id')
     restore(@Param('id') id: string): any{
         return this.todoService.restore(id);
+    } 
+
+    @Get(':id')
+    getTodo(@Param('id') id: string): any{
+        return this.todoService.get(id);
     } 
 
     @Delete(':id')

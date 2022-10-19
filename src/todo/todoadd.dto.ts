@@ -1,5 +1,4 @@
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
-import { Status } from './status.enum';
 
 export class TodoAddDTO{
     @IsString()
