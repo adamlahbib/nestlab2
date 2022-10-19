@@ -7,14 +7,9 @@ export class TodoAddDTO{
     @MinLength(3)
     @MaxLength(10)
     title: string;
-    name: string;
 
     @IsString()
     @IsNotEmpty()
     @MinLength(10)
     description: string;
-
-    id:string;
-    createdAt: Date;
-    status: Status;
 }

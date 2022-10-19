@@ -10,7 +10,7 @@ export class TodoUpdateDTO extends PartialType(TodoAddDTO){
     description?: string;
     @IsOptional()
     @IsEnum(Status)
-    status: Status;
+    status: string;
     @IsOptional()
     createdAt?: Date;
 }

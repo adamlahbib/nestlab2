@@ -7,10 +7,12 @@ import { CommonModule } from './common/common.module';
 import { PipeController } from './pipe/pipe.controller';
 import { configService } from './config/config.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Todo } from './models/item.entity';
 
 @Module({
   imports: [PremierModule, TodoModule, CommonModule, 
-    TypeOrmModule.forRoot(configService.getTypeOrmConfig())
+    TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
+    TypeOrmModule.forFeature([Todo]),
   ],
   controllers: [AppController, PipeController],
   providers: [AppService],

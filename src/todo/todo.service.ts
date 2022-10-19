@@ -1,47 +1,67 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from './model';
 import { Status } from './status.enum';
 import { TodoAddDTO } from './todoadd.dto';
 import { TodoUpdateDTO } from './todoupdate.dto';
 
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Todo } from 'src/models/item.entity';
+
 @Injectable()
 export class TodoService { 
     @Inject('UUID') uuid;   
-    constructor(){}
+    constructor(@InjectRepository(Todo) private readonly repo: Repository<Todo>){}
     
     todoList: Model[]=[];
 
-    create(todo: TodoAddDTO){
-        const _:Model={
-            id: this.uuid,
-            name: todo.title,
-            description: todo.description,
-            createdAt: new Date(),
-            status: Status.active
+    async create(todo: TodoAddDTO){
+        const item = this.repo.create(todo);
+        this.repo.save(item);
+        return item;
+    }
+
+    async fetch(){
+        return this.repo.find();
+    }
+
+    async get(id: any){
+        const item=await this.repo.findOne({where: {id:id}});
+        if (!item) {
+            throw new NotFoundException('Todo not found');
         }
-        this.todoList.push(_);
-        return todo;
+        return item;
     }
 
-    fetch(){
-        return this.todoList;
+    async update(id: any, todo: TodoUpdateDTO){
+        const item=await this.repo.findOne({where: {id:id}});
+        if (!item) {
+            throw new NotFoundException('Todo not found');
+        }
+
+        item.title=todo.title;
+        item.description=todo.description;
+        item.status=todo.status;
+
+        return this.repo.save(item);
     }
 
-    get(id: string){
-        return this.todoList.find((todo) => todo.id === id);
+    async delete(id: any){
+        const item=await this.repo.findOne({where: {id:id}});
+        if (!item) {
+            throw new NotFoundException('Todo not found');
+        }
+        this.repo.softRemove(item);
+        return item;
     }
 
-    update(id: string, todo: TodoUpdateDTO){
-        const i=this.todoList.findIndex((todo) => todo.id === id);
-        this.todoList[i].name=todo.title;
-        this.todoList[i].description=todo.description;
-        return this.todoList[i];
-    }
-
-    delete(id: string){
-        const i=this.todoList.findIndex((todo) => todo.id === id);
-        const deleted=this.todoList[i];
-        this.todoList.splice(i, 1);
-        return deleted;
+    async restore(id: any){
+        const item=await this.repo.findOne({where: {id:id}});
+        if (!item) {
+            return this.repo.restore(id);
+        }
+        else {
+            return item;
+        }
     }
 }

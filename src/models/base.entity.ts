@@ -11,6 +11,6 @@ export abstract class BaseModel {
     updatedAt: Date;
 
     @DeleteDateColumn()
-    deletedAt: Date;
+    deletedAt?: Date;
 
 }
