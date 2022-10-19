@@ -8,4 +8,6 @@ export class TodoQueryDTO {
     status?: string;
     @IsOptional()
     text?: string;
+    take?: number;
+    page?: number;
 }

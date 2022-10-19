@@ -22,19 +22,45 @@ export class TodoService {
         return item;
     }
 
+    paginateResponse(data,page,limit) {
+        const [result, total]=data;
+        const lastPage=Math.ceil(total/limit);
+        const nextPage=page+1 >lastPage ? null :page+1;
+        const prevPage=page-1 < 1 ? null :page-1;
+        return {
+          statusCode: 'success',
+          data: [...result],
+          count: total,
+          currentPage: page,
+          nextPage: nextPage,
+          prevPage: prevPage,
+          lastPage: lastPage,
+        }
+    }
+
     async fetch(query?:TodoQueryDTO){
+        const take=query.take || 2;
+        const page=query.page || 1;
+        const skip=(page-1)*take;
+
         let condition={};
 
         if(query.text && query.status){
-            condition = [{title: Like(`%${query.text}%`), status: query.status}, {description: Like(`%${query.text}%`), status: query.status}];
+            condition=[{title: Like(`%${query.text}%`), status: query.status}, {description: Like(`%${query.text}%`), status: query.status}];
         }
         else if(query.text){
-            condition = [{title: Like(`%${query.text}%`)}, {description: Like(`%${query.text}%`)}];
+            condition=[{title: Like(`%${query.text}%`)}, {description: Like(`%${query.text}%`)}];
         }
         else if(query.status){
-            condition = {status: query.status};
+            condition={status: query.status};
         }
-        return await this.repo.find({where: condition});
+        const data=await this.repo.findAndCount({
+            where: condition,
+            order: {createdAt: 'DESC'},
+            take: take,
+            skip: skip
+        });
+        return this.paginateResponse(data,page,take); 
     }
 
     async get(id: any){
