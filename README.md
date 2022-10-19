@@ -1,6 +1,14 @@
-git clone git@github.com:adamlahbib/nestlab1.git
+PS. We've used a Postgres Docker container.
 
-cd nestlab1
+git clone git@github.com:adamlahbib/nestlab2.git
+
+cd nestlab2
+
+cd src/scripts
+
+chmod +x startdb.sh
+
+cd ../..
 
 npm i
 
@@ -10,6 +18,7 @@ git checkout <sha>
 
 npm run start:dev
 
+<hr/>
 
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>

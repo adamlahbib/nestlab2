@@ -5,9 +5,13 @@ import { PremierModule } from './premier/premier.module';
 import { TodoModule } from './todo/todo.module';
 import { CommonModule } from './common/common.module';
 import { PipeController } from './pipe/pipe.controller';
+import { configService } from './config/config.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [PremierModule, TodoModule, CommonModule],
+  imports: [PremierModule, TodoModule, CommonModule, 
+    TypeOrmModule.forRoot(configService.getTypeOrmConfig())
+  ],
   controllers: [AppController, PipeController],
   providers: [AppService],
 })
