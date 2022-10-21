@@ -9,12 +9,22 @@ import { Repository, Like } from 'typeorm';
 import { Todo } from 'src/models/item.entity';
 import { TodoQueryDTO } from './todoquery.dto';
 
+
+
 @Injectable()
 export class TodoService { 
     @Inject('UUID') uuid;   
     constructor(@InjectRepository(Todo) private readonly repo: Repository<Todo>){}
     
     todoList: Model[]=[];
+
+    async verify(id) {
+        const item=await this.repo.findOne({where: {id:id}});
+        if (!item) {
+            throw new NotFoundException('Todo not found');
+        }
+        return item;
+    }
 
     async create(todo: TodoAddDTO){
         const item = this.repo.create(todo);
@@ -43,9 +53,25 @@ export class TodoService {
         const page=query.page || 1;
         const skip=(page-1)*take;
 
-        let condition={};
-
-        if(query.text && query.status){
+        let data={};
+        
+        if (query.status || query.text){
+            const qb=this.repo.createQueryBuilder('todo');
+            if (query.status) {
+                qb.andWhere('todo.status = :status', {status: query.status});
+            }
+            if (query.text) {
+                qb.andWhere('todo.title LIKE :text OR todo.description LIKE :text', {text: `%${query.text}%`});
+            }
+            qb.skip(skip);
+            qb.take(take);
+            const [result, total]=await qb.getManyAndCount();
+            data = [result,total];
+        } else {
+            data = await this.repo.findAndCount({order: {createdAt: 'DESC'}, take: take, skip: skip});
+            console.log(data);
+        }
+       /* if(query.text && query.status){
             condition=[{title: Like(`%${query.text}%`), status: query.status}, {description: Like(`%${query.text}%`), status: query.status}];
         }
         else if(query.text){
@@ -60,10 +86,11 @@ export class TodoService {
             take: take,
             skip: skip
         });
+        */
         return this.paginateResponse(data,page,take); 
     }
 
-    async get(id: any){
+    async get(id: string){
         const item=await this.repo.findOne({where: {id:id}});
         if (!item) {
             throw new NotFoundException('Todo not found');
@@ -72,23 +99,15 @@ export class TodoService {
     }
 
     async update(id: any, todo: TodoUpdateDTO){
-        const item=await this.repo.findOne({where: {id:id}});
+        const item=await this.repo.preload({id:id,...todo});
         if (!item) {
             throw new NotFoundException('Todo not found');
         }
-
-        item.title=todo.title;
-        item.description=todo.description;
-        item.status=todo.status;
-
         return this.repo.save(item);
     }
 
     async delete(id: any){
-        const item=await this.repo.findOne({where: {id:id}});
-        if (!item) {
-            throw new NotFoundException('Todo not found');
-        }
+        const item = await this.verify(id);
         this.repo.softRemove(item);
         return item;
     }
