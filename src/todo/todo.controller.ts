@@ -10,12 +10,12 @@ export class TodoController {
     constructor(private readonly todoService: TodoService){}
 
     @Get()
-    getTodoList(@Query() query: TodoQueryDTO): any {
+    getTodoList(@Query() query: TodoQueryDTO) {
         return this.todoService.fetch(query);
     }
 
     @Post()
-    createTodo(@Body() body: TodoAddDTO): any {
+    createTodo(@Body() body: TodoAddDTO) {
         return this.todoService.create(body);
     }
 
@@ -25,22 +25,22 @@ export class TodoController {
     } 
 
     @Get('restore/:id')
-    restore(@Param('id') id: string): any{
+    restore(@Param('id') id: string) {
         return this.todoService.restore(id);
     } 
 
     @Get(':id')
-    getTodo(@Param('id') id: string): any{
+    getTodo(@Param('id') id: string) {
         return this.todoService.get(id);
     } 
 
     @Delete(':id')
-    deleteTodo(@Param('id') id: string): any{
+    deleteTodo(@Param('id') id: string) {
         return this.todoService.delete(id);
     }
 
     @Put(':id')
-    updateTodo(@Param('id') id: string, @Body() body: TodoUpdateDTO): any{
+    updateTodo(@Param('id') id: string, @Body() body: TodoUpdateDTO) {
         return this.todoService.update(id, body);
     }
 

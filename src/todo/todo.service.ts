@@ -1,6 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from './model';
-import { Status } from './status.enum';
 import { TodoAddDTO } from './todoadd.dto';
 import { TodoUpdateDTO } from './todoupdate.dto';
 
@@ -67,26 +66,11 @@ export class TodoService {
             qb.take(take);
             const [result, total]=await qb.getManyAndCount();
             data = [result,total];
+
         } else {
             data = await this.repo.findAndCount({order: {createdAt: 'DESC'}, take: take, skip: skip});
-            console.log(data);
         }
-       /* if(query.text && query.status){
-            condition=[{title: Like(`%${query.text}%`), status: query.status}, {description: Like(`%${query.text}%`), status: query.status}];
-        }
-        else if(query.text){
-            condition=[{title: Like(`%${query.text}%`)}, {description: Like(`%${query.text}%`)}];
-        }
-        else if(query.status){
-            condition={status: query.status};
-        }
-        const data=await this.repo.findAndCount({
-            where: condition,
-            order: {createdAt: 'DESC'},
-            take: take,
-            skip: skip
-        });
-        */
+
         return this.paginateResponse(data,page,take); 
     }
 
@@ -98,7 +82,7 @@ export class TodoService {
         return item;
     }
 
-    async update(id: any, todo: TodoUpdateDTO){
+    async update(id: string, todo: TodoUpdateDTO){
         const item=await this.repo.preload({id:id,...todo});
         if (!item) {
             throw new NotFoundException('Todo not found');
@@ -106,13 +90,13 @@ export class TodoService {
         return this.repo.save(item);
     }
 
-    async delete(id: any){
+    async delete(id: string){
         const item = await this.verify(id);
         this.repo.softRemove(item);
         return item;
     }
 
-    async restore(id: any){
+    async restore(id: string){
         const item=await this.repo.findOne({where: {id:id}});
         if (!item) {
             return this.repo.restore(id);
@@ -123,7 +107,9 @@ export class TodoService {
     }
 
     async countByStatus(){
-        const count = await this.repo.query('SELECT status, COUNT(*) FROM todo GROUP BY status');
-        return(count);
+        const qb=this.repo.createQueryBuilder('todo');
+        qb.select('todo.status, COUNT(todo.status) as count');
+        qb.groupBy('todo.status');
+        return qb.getRawMany();
     }
 }
